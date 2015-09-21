@@ -25,9 +25,9 @@ public interface View extends Serializable {
 
     Coordinate getCenter();
 
-    void setProjection(Projection projection);
+    void setCrs(Crs projection);
 
-    Projection getProjection();
+    Crs getCrs();
 
     void setResolution(Double resolution) throws PropertyVetoException;
 

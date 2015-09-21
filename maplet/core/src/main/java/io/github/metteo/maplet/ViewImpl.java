@@ -5,6 +5,8 @@ import java.beans.PropertyChangeSupport;
 import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
@@ -15,15 +17,27 @@ public class ViewImpl implements View {
     private final PropertyChangeSupport mPcs = new PropertyChangeSupport(this);
     private final VetoableChangeSupport mVcs = new VetoableChangeSupport(this);
 
-    Coordinate mCenter;
+    protected Coordinate mCenter;
+    
+    protected CenterConstraint mCenterConstraint;
 
-    Projection mProjection;
+    protected Crs mCrs;
 
-    Double mResolution;
+    protected Double mResolution;
+    
+    protected ResolutionConstraint mResolutionConstraint;
 
-    Double mRotation;
+    protected Double mRotation;
+    
+    protected RotationConstraint mRotationConstraint;
 
-    Double mTilt;
+    protected Double mTilt;
+    
+    protected TiltConstraint mTiltConstraint;
+    
+    protected Set<Hint> mHints = new HashSet<>(2);
+    
+    protected transient int mModCount = 0;
 
     /*
      * For serialization
@@ -37,7 +51,7 @@ public class ViewImpl implements View {
      */
     public ViewImpl(ViewImpl other) {
 	mCenter = other.mCenter.copy();
-	mProjection = other.mProjection.copy();
+	mCrs = other.mCrs.copy();
 	mResolution = other.mResolution;
 	mRotation = other.mRotation;
 	mTilt = other.mTilt;
@@ -50,6 +64,7 @@ public class ViewImpl implements View {
 	fireVetoableChange(Property.CENTER, oldValue, center);
 
 	mCenter = center;
+	mModCount++;
 
 	firePropertyChange(Property.CENTER, oldValue, center);
     }
@@ -60,13 +75,14 @@ public class ViewImpl implements View {
     }
 
     @Override
-    public void setProjection(Projection projection) {
-	mProjection = projection;
+    public void setCrs(Crs crs) {
+	mCrs = crs;
+	mModCount++;
     }
 
     @Override
-    public Projection getProjection() {
-	return mProjection;
+    public Crs getCrs() {
+	return mCrs;
     }
 
     @Override
@@ -76,6 +92,7 @@ public class ViewImpl implements View {
 	fireVetoableChange(Property.RESOLUTION, oldValue, resolution);
 
 	mResolution = resolution;
+	mModCount++;
 
 	firePropertyChange(Property.RESOLUTION, oldValue, resolution);
     }
@@ -92,6 +109,7 @@ public class ViewImpl implements View {
 	fireVetoableChange(Property.ROTATION, oldValue, rotation);
 
 	mRotation = rotation;
+	mModCount++;
 
 	firePropertyChange(Property.ROTATION, oldValue, rotation);
     }
@@ -108,6 +126,7 @@ public class ViewImpl implements View {
 	fireVetoableChange(Property.TILT, oldValue, tilt);
 
 	mTilt = tilt;
+	mModCount++;
 
 	firePropertyChange(Property.TILT, oldValue, tilt);
     }
@@ -155,7 +174,7 @@ public class ViewImpl implements View {
 	final int prime = 31;
 	int result = 1;
 	result = prime * result + ((mCenter == null) ? 0 : mCenter.hashCode());
-	result = prime * result + ((mProjection == null) ? 0 : mProjection.hashCode());
+	result = prime * result + ((mCrs == null) ? 0 : mCrs.hashCode());
 	result = prime * result + ((mResolution == null) ? 0 : mResolution.hashCode());
 	result = prime * result + ((mRotation == null) ? 0 : mRotation.hashCode());
 	result = prime * result + ((mTilt == null) ? 0 : mTilt.hashCode());
@@ -176,10 +195,10 @@ public class ViewImpl implements View {
 		return false;
 	} else if (!mCenter.equals(other.mCenter))
 	    return false;
-	if (mProjection == null) {
-	    if (other.mProjection != null)
+	if (mCrs == null) {
+	    if (other.mCrs != null)
 		return false;
-	} else if (!mProjection.equals(other.mProjection))
+	} else if (!mCrs.equals(other.mCrs))
 	    return false;
 	if (mResolution == null) {
 	    if (other.mResolution != null)
@@ -201,7 +220,7 @@ public class ViewImpl implements View {
 
     @Override
     public String toString() {
-	return "View [center=" + mCenter + ", projection=" + mProjection + ", resolution=" + mResolution + ", rotation="
+	return "View [center=" + mCenter + ", projection=" + mCrs + ", resolution=" + mResolution + ", rotation="
 		+ mRotation + ", tilt=" + mTilt + "]";
     }
 
